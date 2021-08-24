@@ -1,0 +1,69 @@
+.settings {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+
+  z-index: 10;
+
+  width: 30px;
+  height: 30px;
+
+  button {
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    outline: 0;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+  }
+
+  &__icon {
+    width: 100%;
+    height: auto;
+
+    &--desaturated {
+      filter: saturate(0%);
+    }
+
+    &:hover {
+      filter: saturate(100%);
+    }
+  }
+
+  &__menu {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 200px;
+    min-height: 400px;
+    background-color: hsla(200, 10, 10, 0.8);
+    box-shadow: 0 0 4px 1px hsla(200, 10, 5, 0.8);
+
+    border-bottom-left-radius: 0.75rem;
+
+    transition-duration: 200ms;
+
+    &--hidden {
+      transform: translate(100%, -100%);
+    }
+
+    h2 {
+      margin: 1rem 0 0 1rem;
+      padding: 0;
+      color: hsl(0, 0, 96);
+      font-family: 'Lato', sans-serif;
+      font-weight: 100;
+      font-size: 1.4rem;
+    }
+
+    .menu {
+      width: 100%;
+      height: 100%;
+      margin-top: 1rem;
+
+      border-top: 1px solid hsl(200, 60, 45);
+    }
+  }
+}
