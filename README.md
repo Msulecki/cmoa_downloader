@@ -4,7 +4,7 @@
 
 ---
 
-_*It's useful for saving your magna of choice for offline reading*_
+_*It's useful for saving your manga of choice for offline reading*_
 
 ```
 $ git clone https://github.com/Msulecki/cmoa_downloader.git
