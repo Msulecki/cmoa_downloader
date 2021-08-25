@@ -1,32 +1,37 @@
 import fs from 'fs';
 import puppeteer from 'puppeteer';
+import { Socket } from 'socket.io';
 import { defaultConfig } from '../config/config.js';
 
-async function getPage(socket) {
+async function getPage(socket: Socket): Promise<Array<string[]>> {
   socket.emit(`event:progress:${defaultConfig.token}`, {
     message: 'Opening CMOA page',
     progress: 2,
   });
 
-  async function scrapper() {
+  async function scrapper(): Promise<Array<string[]>> {
     try {
       const browser = await puppeteer.launch({
         headless: true,
         args: ['--no-sandbox', '--disable-setuid-sandbox'],
       });
+
       const page = await browser.newPage();
+
       await page.goto('https://www.cmoa.jp/auth/login/');
       await page.waitForSelector('input[type="email"]');
       await page.type('input[type="email"]', defaultConfig.login);
       await page.waitForSelector('input[type="password"]');
       await page.type('input[type="password"]', defaultConfig.password);
-      await page.$eval('form', (form) => form.submit());
+      await page.$eval('form', (form: Element) =>
+        (form as HTMLFormElement).submit()
+      );
 
-      page.on('error', () => {
+      page.on('error', (error) => {
         socket.emit(`event:error:${defaultConfig.token}`, { message: error });
       });
 
-      page.on('pageerror', () => {
+      page.on('pageerror', (error) => {
         socket.emit(`event:error:${defaultConfig.token}`, { message: error });
       });
 
@@ -62,7 +67,7 @@ async function getPage(socket) {
         slidesCounter
       );
       const slidesCount = await parseInt(slidesText.split('/')[1]);
-      const imgArr = [];
+      const imgArr: Array<string[]> = [];
 
       socket.emit(`event:progress:${defaultConfig.token}`, {
         message: `Found ${slidesCount} slides`,
@@ -77,9 +82,19 @@ async function getPage(socket) {
 
           const step = i * 2 - 1 + j;
           await page.waitForSelector(`#content-p${step} img`);
+
           const images = await page.$$eval(
             `#content-p${step} img[src]`,
-            (imgs) => imgs.map((img) => img.getAttribute('src'))
+            (imgs) =>
+              imgs.map((img) => {
+                const imgSrc = img.getAttribute('src');
+                if (!imgSrc) {
+                  throw new Error(
+                    'No img[src] attribute found for given slide.'
+                  );
+                }
+                return imgSrc;
+              })
           );
 
           socket.emit(`event:progress:${defaultConfig.token}`, {
@@ -95,7 +110,8 @@ async function getPage(socket) {
             const newTab = await browser
               .newPage()
               .catch((err) => console.error('err'));
-            const viewSource = await newTab.goto(image);
+
+            const viewSource = await (newTab as puppeteer.Page).goto(image);
 
             fs.writeFile(
               `${defaultConfig.tempFilesPath}/img_${step}-${k + 1}.png`,
@@ -108,7 +124,7 @@ async function getPage(socket) {
             );
 
             await page.waitForTimeout(200);
-            await newTab.close();
+            await (newTab as puppeteer.Page).close();
             await page.bringToFront();
           });
         }
@@ -121,9 +137,7 @@ async function getPage(socket) {
         progress: 60,
       });
 
-      await page.waitForTimeout(3000);
-
-      await page.waitForTimeout(3000);
+      await page.waitForTimeout(1000);
 
       await browser.close();
 

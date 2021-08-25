@@ -1,10 +1,21 @@
 import fs from 'fs';
 import unlink from './unlink.js';
 import { defaultConfig } from '../../config/config.js';
+import { Socket } from 'socket.io';
 
-const imgAsync = (imgPath, socket) =>
+interface ICleanupByPath {
+  path: string;
+  message: string;
+  socket: Socket;
+}
+
+const cleanupByPath = ({
+  path,
+  message,
+  socket,
+}: ICleanupByPath): Promise<void> =>
   new Promise((resolve, reject) =>
-    fs.readdir(imgPath, (err, files) => {
+    fs.readdir(path, (err, files) => {
       if (err) {
         reject(err);
       }
@@ -13,11 +24,11 @@ const imgAsync = (imgPath, socket) =>
         resolve();
       } else {
         socket.emit(`event:progress:${defaultConfig.token}`, {
-          message: `Removing ${files.length} image files`,
-          progress: 91,
+          message: message.split('###').join(`${files.length}`),
+          progress: 87,
         });
 
-        unlink(files, imgPath)
+        unlink(files, path)
           .then(() => {
             resolve();
           })
@@ -26,4 +37,4 @@ const imgAsync = (imgPath, socket) =>
     })
   );
 
-export default imgAsync;
+export default cleanupByPath;

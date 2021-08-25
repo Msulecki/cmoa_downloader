@@ -1,7 +1,8 @@
-import { defaultConfig } from '../config/config.js';
 import imgMergeAsync from './imgMergeAsync.js';
+import { defaultConfig } from '../config/config.js';
+import { Socket } from 'socket.io';
 
-function imgMerge(imgArr, socket) {
+const imgMerge = (imgArr: Array<string[]>, socket: Socket): Promise<any> => {
   socket.emit(`event:progress:${defaultConfig.token}`, {
     message: 'Writing files',
     progress: 63,
@@ -12,6 +13,6 @@ function imgMerge(imgArr, socket) {
   });
 
   return Promise.all([promisesArr]);
-}
+};
 
 export default imgMerge;

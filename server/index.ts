@@ -10,11 +10,27 @@ import cleanup from './functions/cleanup/cleanup.js';
 import { defaultConfig } from './config/config.js';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
-import { fakeData } from './functions/fakeData.js';
+import { fakeData } from './functions/fakeData';
+
+interface IHandshake {
+  userToken: string;
+}
+
+interface IScrapData {
+  data: {
+    email: string;
+    password: string;
+    url: string;
+  };
+}
 
 const app = express();
 
-app.use(cors('http://localhost:3008'));
+app.use(
+  cors({
+    origin: process.env.CLIENT_BACKUP_ADDRESS,
+  })
+);
 
 app.use(express.static('../client/build'));
 
@@ -37,9 +53,9 @@ app.use(express.static('../cmoa/build'));
 app.use(express.static('./tar'));
 
 io.on('connection', (socket) => {
-  let token;
+  let token = '';
 
-  socket.on('handshake', ({ userToken: incomingToken }) => {
+  socket.on('handshake', ({ userToken: incomingToken }: IHandshake) => {
     token = incomingToken;
 
     console.log(`%c connected`, 'color:#66DD44;', incomingToken);
@@ -50,10 +66,10 @@ io.on('connection', (socket) => {
     });
   });
 
-  socket.on('post:scrap-data', (incoming) => {
-    console.log('got data', `event:start:${token}`, incoming.data);
+  socket.on('post:scrap-data', ({ data }: IScrapData) => {
+    console.log('got data', `event:start:${token}`, data);
 
-    const { email, password, url } = incoming.data;
+    const { email, password, url } = data;
 
     defaultConfig.login = email;
     defaultConfig.password = password;
@@ -68,7 +84,7 @@ io.on('connection', (socket) => {
     (async function () {
       console.log('getPage');
 
-      const imgArr = fakeData;
+      const imgArr = await getPage(socket);
 
       console.log('imgMerge');
       await imgMerge(imgArr, socket);
