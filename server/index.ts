@@ -10,7 +10,7 @@ import cleanup from './functions/cleanup/cleanup.js';
 import { defaultConfig } from './config/config.js';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
-import { fakeData } from './functions/fakeData';
+import { fakeData } from './functions/fakeData.js';
 
 interface IHandshake {
   userToken: string;
@@ -84,7 +84,8 @@ io.on('connection', (socket) => {
     (async function () {
       console.log('getPage');
 
-      const imgArr = await getPage(socket);
+      // const imgArr = await getPage(socket);
+      const imgArr = fakeData;
 
       console.log('imgMerge');
       await imgMerge(imgArr, socket);
