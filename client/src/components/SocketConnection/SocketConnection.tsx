@@ -27,15 +27,12 @@ const SocketConnection = (props: ISocketConnection) => {
     });
 
     socket.on('disconnect', (reason: any) => {
-      console.log('disconnect event', reason);
+      console.info('disconnected', reason);
     });
 
     return () => {
       socket.off('connect');
-
-      socket.off('disconnect in return', (reason: any) => {
-        console.log('disconnect', reason);
-      });
+      socket.off('disconnect');
     };
   }, []);
 
@@ -51,7 +48,7 @@ const SocketConnection = (props: ISocketConnection) => {
 
   return (
     <SocketContext.Provider value={{ socket, userToken }}>
-      {children}
+      <div className='app__content'>{children}</div>
     </SocketContext.Provider>
   );
 };

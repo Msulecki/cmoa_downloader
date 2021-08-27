@@ -9,4 +9,15 @@
 
   font-family: 'Lato', sans-serif;
   color: hsl(200, 10, 80);
+
+  &__content {
+    opacity: 0;
+    animation: fade-in 300ms ease-out forwards;
+  }
+}
+
+@keyframes fade-in {
+  100% {
+    opacity: 1;
+  }
 }
