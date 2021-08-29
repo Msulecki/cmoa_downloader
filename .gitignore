@@ -2,7 +2,8 @@ node_modules
 
 .env
 
-server/functions/fakeData.ts
+server/functions/dummyData.ts
+/server/build
 
 server_bck
 img
