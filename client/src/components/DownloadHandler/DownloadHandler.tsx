@@ -6,10 +6,7 @@ const DownloadHandler = () => {
 
   useEffect(() => {
     socket.on(`event:link:${userToken}`, (data: { path: string }) => {
-      console.log(
-        `%c Download link: ${window.location.origin}${data.path}`,
-        'color:#66DD44;'
-      );
+      console.log('%c Download link:', data.path, 'color:#66DD44;');
 
       const link = document.createElement('a');
       link.setAttribute('href', data.path);
