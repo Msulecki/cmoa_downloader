@@ -1,16 +1,12 @@
 import fs from 'fs';
-import { Socket } from 'socket.io';
 import tar from 'tar';
 import { defaultConfig } from '../config/config.js';
 
-const createArchive = (filename: string, socket: Socket): Promise<void> => {
+const createArchive = (filename: string): Promise<void> => {
   const imgPath = defaultConfig.finalFilesPath;
   const destinationPath = defaultConfig.tarFilePath;
 
-  socket.emit(`event:progress:${defaultConfig.token}`, {
-    message: 'Creating archive...',
-    progress: 76,
-  });
+  console.log('creating archive');
 
   return new Promise((resolve, reject) => {
     const stream = fs.createWriteStream(`${destinationPath}/${filename}`);

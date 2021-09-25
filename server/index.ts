@@ -4,13 +4,11 @@ import { fileURLToPath } from 'url';
 import { createServer } from 'http';
 import { Server } from 'socket.io';
 import getPage from './functions/getPage.js';
-import imgMerge from './functions/imgMerge.js';
 import createArchive from './functions/createArchive.js';
 import cleanup from './functions/cleanup/cleanup.js';
 import { defaultConfig } from './config/config.js';
 import { v4 as uuidv4 } from 'uuid';
 import cors from 'cors';
-import { fakeData } from './functions/fakeData.js';
 
 interface IHandshake {
   userToken: string;
@@ -28,7 +26,7 @@ const app = express();
 
 app.use(
   cors({
-    origin: process.env.CLIENT_BACKUP_ADDRESS,
+    origin: process.env.CLIENT_ADDRESS,
   })
 );
 
@@ -39,11 +37,14 @@ const server = createServer(app);
 const io = new Server(server, {
   transports: ['websocket'],
   cors: {
-    origin: ['http://localhost:3008', 'http://localhost:3009'],
+    origin: [
+      `${process.env.CLIENT_ADDRESS}`,
+      `http://localhost:${process.env.PORT}`,
+    ],
     methods: ['GET', 'POST'],
   },
-  pingInterval: 10000,
-  pingTimeout: 120000,
+  pingInterval: 1 * 60 * 1000,
+  pingTimeout: 1 * 60 * 60 * 1000,
 });
 
 const __filename = fileURLToPath(import.meta.url);
@@ -84,16 +85,20 @@ io.on('connection', (socket) => {
     (async function () {
       console.log('getPage');
 
-      // const imgArr = await getPage(socket);
-      const imgArr = fakeData;
+      await getPage(socket);
 
-      console.log('imgMerge');
-      await imgMerge(imgArr, socket);
+      socket.emit(`event:progress:${defaultConfig.token}`, {
+        message: 'Writing files',
+        progress: 63,
+      });
 
-      console.log('createArchive');
-      await createArchive(filename, socket);
+      socket.emit(`event:progress:${defaultConfig.token}`, {
+        message: 'Creating archive...',
+        progress: 76,
+      });
 
-      console.log('cleanup');
+      await createArchive(filename);
+
       await cleanup(socket);
     })()
       .then(() => {
@@ -105,7 +110,13 @@ io.on('connection', (socket) => {
         });
 
         socket.emit(`event:link:${defaultConfig.token}`, {
-          path: '/' + getArchivePath,
+          path: getArchivePath,
+        });
+
+        socket.emit(`event:message:${defaultConfig.token}`, {
+          message: "If download hasn't started, try here: ",
+          url: getArchivePath,
+          urlDesc: 'Click',
         });
 
         socket.emit(`event:progress:${defaultConfig.token}`, {

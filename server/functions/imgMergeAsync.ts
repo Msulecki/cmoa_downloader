@@ -7,29 +7,32 @@ import { defaultConfig } from '../config/config.js';
 
 const { Canvas, Image } = canvas;
 
-async function imgMergeAsync(img: string[], index: number): Promise<any> {
-  const imgDimFinal = await getImgSize(img, index);
+const SUBIMG_OFFSET = 4;
+
+async function imgMergeAsync(
+  img: Promise<Buffer>[],
+  index: number
+): Promise<any> {
+  const imgDimFinal = await getImgSize(img);
   let imgOffset = 0;
 
-  const imagesMap = await img.map((image, ind) => {
-    const imgSrc = `${defaultConfig.tempFilesPath}/img_${index + 1}-${
-      ind + 1
-    }.png`;
-    const prevImgSrc = `${defaultConfig.tempFilesPath}/img_${
-      index + 1
-    }-${ind}.png`;
+  const resolvedImgArray = await Promise.all(img);
 
+  const imagesMap = resolvedImgArray.map((image, ind) => {
     if (ind > 0) {
-      imgOffset = imgOffset + (sizeOf(prevImgSrc).height || 0) - 4;
+      imgOffset =
+        imgOffset +
+        (sizeOf(resolvedImgArray[ind - 1]).height || 0) -
+        SUBIMG_OFFSET;
     }
 
-    return { src: imgSrc, x: 0, y: imgOffset };
+    return { src: image, x: 0, y: imgOffset };
   });
 
   const b64 = await mergeImages(imagesMap, {
     Canvas: Canvas,
     Image: Image,
-    height: imgDimFinal - (4 * img.length - 1),
+    height: imgDimFinal - (SUBIMG_OFFSET * img.length - 1),
   });
 
   const b64Data = b64.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
@@ -41,13 +44,13 @@ async function imgMergeAsync(img: string[], index: number): Promise<any> {
   const bufferData = Buffer.from(b64Data[2], 'base64');
 
   fs.writeFile(
-    `${defaultConfig.finalFilesPath}/image_${index + 1}.png`,
+    `${defaultConfig.finalFilesPath}/image_${index}.png`,
     bufferData,
     (err) => {
       if (err) {
         throw new Error(err.message);
       }
-      console.log('write:', index + 1);
+      console.log('write:', index);
     }
   );
 }

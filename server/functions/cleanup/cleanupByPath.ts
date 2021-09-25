@@ -32,7 +32,11 @@ const cleanupByPath = ({
           .then(() => {
             resolve();
           })
-          .catch((err) => reject(err));
+          .catch((err) => {
+            console.error(err);
+
+            resolve(); // not critical error, archive already generated
+          });
       }
     })
   );

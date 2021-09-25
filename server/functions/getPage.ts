@@ -1,6 +1,6 @@
-import fs from 'fs';
 import puppeteer from 'puppeteer';
 import { Socket } from 'socket.io';
+import imgMergeAsync from './imgMergeAsync.js';
 import { defaultConfig } from '../config/config.js';
 
 async function getPage(socket: Socket): Promise<Array<string[]>> {
@@ -74,7 +74,7 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
         progress: 16,
       });
 
-      for (let i = 1; i < Math.floor(slidesCount / 2) + 1; i++) {
+      for (let i = 1; i < Math.ceil(slidesCount / 2) + 1; i++) {
         await page.waitForTimeout(500);
 
         for (let j = 0; j < 2; j++) {
@@ -104,29 +104,25 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
 
           imgArr.push(images);
 
-          images.forEach(async (image, k) => {
+          const imgBuffer = images.map(async (image) => {
             await page.waitForTimeout(500);
 
             const newTab = await browser
               .newPage()
-              .catch((err) => console.error('err'));
+              .catch((err) => console.error(err));
 
             const viewSource = await (newTab as puppeteer.Page).goto(image);
 
-            fs.writeFile(
-              `${defaultConfig.tempFilesPath}/img_${step}-${k + 1}.png`,
-              await viewSource.buffer(),
-              function (err) {
-                if (err) {
-                  return console.log(err);
-                }
-              }
-            );
+            const resolvedBuffer = await viewSource.buffer();
 
             await page.waitForTimeout(200);
             await (newTab as puppeteer.Page).close();
             await page.bringToFront();
+
+            return resolvedBuffer;
           });
+
+          await imgMergeAsync(imgBuffer, step);
         }
 
         await page.waitForTimeout(500);
@@ -147,7 +143,7 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
       });
 
       return imgArr;
-    } catch (error) {
+    } catch (error: any) {
       throw new Error(error);
     }
   }
