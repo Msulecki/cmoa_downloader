@@ -75,10 +75,8 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
       });
 
       for (let i = 1; i < Math.ceil(slidesCount / 2) + 1; i++) {
-        await page.waitForTimeout(500);
-
         for (let j = 0; j < 2; j++) {
-          await page.waitForTimeout(500);
+          await page.waitForTimeout(200);
 
           const step = i * 2 - 1 + j;
 
@@ -111,7 +109,7 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
           imgArr.push(images);
 
           const imgBuffer = images.map(async (image) => {
-            await page.waitForTimeout(500);
+            await page.waitForTimeout(200);
 
             const newTab = await browser
               .newPage()
@@ -121,7 +119,6 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
 
             const resolvedBuffer = await viewSource.buffer();
 
-            await page.waitForTimeout(200);
             await (newTab as puppeteer.Page).close();
             await page.bringToFront();
 
@@ -131,7 +128,7 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
           await imgMergeAsync(imgBuffer, step);
         }
 
-        await page.waitForTimeout(500);
+        await page.waitForTimeout(200);
         await page.keyboard.press('ArrowLeft');
       }
       socket.emit(`event:progress:${defaultConfig.token}`, {
