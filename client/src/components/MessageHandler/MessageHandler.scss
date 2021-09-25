@@ -1,0 +1,41 @@
+.message {
+  color: hsl(100, 100, 90);
+  background-color: hsl(100, 40, 40);
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  padding: 1rem 1rem;
+  font-size: 1rem;
+  display: flex;
+  justify-content: center;
+  z-index: 100;
+
+  transform: translateY(-100%);
+  transition-duration: 300ms;
+
+  &--visible {
+    transform: translateY(0%);
+  }
+
+  &__dismiss {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: hsl(100, 100, 90);
+    font-size: 1.2rem;
+    border-radius: 50%;
+  }
+
+  a,
+  a:active,
+  a:visited {
+    color: inherit;
+    font-weight: 300;
+  }
+}
