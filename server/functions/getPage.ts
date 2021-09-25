@@ -81,6 +81,12 @@ async function getPage(socket: Socket): Promise<Array<string[]>> {
           await page.waitForTimeout(500);
 
           const step = i * 2 - 1 + j;
+
+          if (step > slidesCount) {
+            console.log('step>slidesCount, breaking');
+            break;
+          }
+
           await page.waitForSelector(`#content-p${step} img`);
 
           const images = await page.$$eval(
