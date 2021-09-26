@@ -78,7 +78,7 @@ io.on('connection', (socket) => {
     defaultConfig.token = token;
 
     const filename = `${uuidv4()}.tgz`;
-    const getArchivePath = `tar/${filename}`;
+    const archivePath = `tar/${filename}`;
 
     socket.emit(`event:start:${token}`);
 
@@ -88,16 +88,16 @@ io.on('connection', (socket) => {
       await getPage(socket);
 
       socket.emit(`event:progress:${defaultConfig.token}`, {
-        message: 'Writing files',
+        message: 'Creating archive...',
         progress: 63,
       });
 
+      await createArchive(filename);
+
       socket.emit(`event:progress:${defaultConfig.token}`, {
-        message: 'Creating archive...',
+        message: 'Performing cleanup',
         progress: 76,
       });
-
-      await createArchive(filename);
 
       await cleanup(socket);
     })()
@@ -110,12 +110,12 @@ io.on('connection', (socket) => {
         });
 
         socket.emit(`event:link:${defaultConfig.token}`, {
-          path: getArchivePath,
+          path: archivePath,
         });
 
         socket.emit(`event:message:${defaultConfig.token}`, {
           message: "If download hasn't started, try here: ",
-          url: getArchivePath,
+          url: archivePath,
           urlDesc: 'Click',
         });
 
@@ -142,6 +142,7 @@ io.on('connection', (socket) => {
       );
 
       console.log(fileLocation);
+
       res.setHeader('Content-Type', 'application/gzip');
       res.sendFile(fileLocation);
     });
